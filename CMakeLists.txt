@@ -3,11 +3,13 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
-project ("SmartPtrImplementation")
+project ("SmartPtr")
+
+enable_testing()
 
 #add_subdirectory(Test)
-add_subdirectory(googletest)
+include_directories("googletest/googletest/include")
 
-# Include sub-projects.
+add_subdirectory("googletest")
 add_subdirectory ("src")
-#add_subdirectory ("tests")
+add_subdirectory ("tests")
