@@ -150,4 +150,64 @@ TEST(SHARED_PTR, INT)
 
 }
 
+
+
+TEST(SHARED_PTR, CHAR)
+{
+    std::shared_ptr<int> s1(new int(2));
+    shared_ptr<int> s2(new int (2));
+
+    EXPECT_EQ(*s1, *s2);
+}
+
+
+
+TEST(SHARED_PTR, CONSTRUCTORS)
+{
+    std::shared_ptr<int> s1(new int(2));
+    shared_ptr<int> s2(new int (2));
+
+    EXPECT_EQ(*s1, *s2);
+
+    /*
+    s1.reset(nullptr);
+    s2.reset(nullptr);
+
+    EXPECT_TRUE(u1.get() == nullptr);
+    EXPECT_TRUE(u2.get() == nullptr);
+    */
+
+    {
+        std::shared_ptr<int> s3(s1);
+        shared_ptr<int> s4(s2);
+
+        (*s3)++;
+        (*s4)++;
+
+        EXPECT_EQ(*s3, *s4);
+    }
+
+    EXPECT_EQ(*s1, *s2);
+
+}
+
+TEST(SHARED_PTR, SWAP)
+{
+    shared_ptr<int> s1(new int(1));
+    shared_ptr<int> s2(new int (2));
+
+    EXPECT_TRUE(*s1 == 1);
+    EXPECT_TRUE(*s2 == 2);
+
+    s2.swap(s1);
+
+    EXPECT_TRUE(*s1 == 2);
+    EXPECT_TRUE(*s2 == 1);
+
+    s1.swap(s2);
+
+    EXPECT_TRUE(*s1 == 1);
+    EXPECT_TRUE(*s2 == 2);
+}
+
 //*/
