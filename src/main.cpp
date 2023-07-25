@@ -4,9 +4,10 @@
 #include "unique_ptr.h"
 
 #include "iostream"
+#include "widget.h"
 
 int main()
 {
-	std::cout << "Hello CMake." << "\n";
+	std::cout << "Hello World!" << "\n";
 	return 0;
 }
