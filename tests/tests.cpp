@@ -4,6 +4,7 @@
 
 #include "../src/unique_ptr.h"
 #include "../src/shared_ptr.h"
+#include "../src/weak_ptr.h"
 
 #include <memory>
 
@@ -150,8 +151,6 @@ TEST(SHARED_PTR, INT)
 
 }
 
-
-
 TEST(SHARED_PTR, CHAR)
 {
     std::shared_ptr<int> s1(new int(2));
@@ -159,8 +158,6 @@ TEST(SHARED_PTR, CHAR)
 
     EXPECT_EQ(*s1, *s2);
 }
-
-
 
 TEST(SHARED_PTR, CONSTRUCTORS)
 {
@@ -208,6 +205,165 @@ TEST(SHARED_PTR, SWAP)
 
     EXPECT_TRUE(*s1 == 1);
     EXPECT_TRUE(*s2 == 2);
+}
+
+
+
+
+
+TEST(WEAK_PTR, CONSTRUCTORS)
+{
+    std::shared_ptr<int> s1(new int(2));
+    shared_ptr<int> s2(new int (2));
+
+    std::weak_ptr<int> w1(s1);
+    weak_ptr<int> w2(s2);
+
+    EXPECT_EQ(w1.expired(), w2.expired());
+
+
+    std::shared_ptr<int> s3(w1);
+    shared_ptr<int> s4(w2);
+
+    EXPECT_EQ(w1.use_count(), w2.use_count());
+}
+
+TEST(WEAK_PTR, CONSTRUCTORS1)
+{
+    std::shared_ptr<int> s1(new int(2));
+    shared_ptr<int> s2(new int (2));
+
+    std::shared_ptr<int> s3(new int(2));
+    shared_ptr<int> s4(new int (2));
+
+    std::weak_ptr<int> w1(s1);
+    weak_ptr<int> w2(s2);
+
+    s1 = s3;
+    s2 = s4;
+
+    EXPECT_EQ(w1.use_count(), w2.use_count());
+    EXPECT_TRUE(w1.expired());
+    EXPECT_TRUE(w2.expired());
+
+    w1 = s3;
+    w2 = s4;
+
+    EXPECT_EQ(w1.use_count(), w2.use_count());
+    EXPECT_EQ(w1.use_count(), 2);
+}
+
+TEST(WEAK_PTR, CONSTRUCTORS2)
+{
+
+    std::weak_ptr<int> w1;
+    weak_ptr<int> w2;
+
+    {
+        std::shared_ptr<int> s1(new int(2));
+        shared_ptr<int> s2(new int(2));
+
+        w1 = s1;
+        w2 = s2;
+
+        EXPECT_EQ(w1.use_count(), w2.use_count());
+        EXPECT_FALSE(w1.expired());
+        EXPECT_FALSE(w2.expired());
+    }
+
+    EXPECT_EQ(w1.use_count(), w2.use_count());
+    EXPECT_TRUE(w1.expired());
+    EXPECT_TRUE(w2.expired());
+
+}
+
+TEST(WEAK_PTR, LOCK)
+{
+    std::shared_ptr<int> s1(new int(2));
+    shared_ptr<int> s2(new int (2));
+
+    std::weak_ptr<int> w1(s1);
+    weak_ptr<int> w2(s2);
+
+    EXPECT_EQ(w1.use_count(), w2.use_count());
+
+    auto s3 = w1.lock();
+    auto s4 = w2.lock();
+
+    EXPECT_EQ(w1.use_count(), w2.use_count());
+    EXPECT_EQ(*s3, *s4);
+}
+
+TEST(WEAK_PTR, LOCK1)
+{
+    std::weak_ptr<int> w1;
+    weak_ptr<int> w2;
+
+    {
+        std::shared_ptr<int> s1(new int(2));
+        shared_ptr<int> s2(new int(2));
+
+        w1 = s1;
+        w2 = s2;
+
+        EXPECT_EQ(w1.use_count(), w2.use_count());
+        EXPECT_FALSE(w1.expired());
+        EXPECT_FALSE(w2.expired());
+
+        auto s3 = w1.lock();
+        auto s4 = w2.lock();
+
+        EXPECT_EQ(w1.use_count(), w2.use_count());
+        EXPECT_EQ(*s3, *s4);
+    }
+
+    auto s3 = w1.lock();
+    auto s4 = w2.lock();
+
+    EXPECT_EQ(w1.use_count(), w2.use_count());
+    EXPECT_EQ(s3.get(), nullptr);
+    EXPECT_EQ(s4.get(), nullptr);
+}
+
+TEST(WEAK_PTR, SWAP)
+{
+    shared_ptr<int> s1(new int(1));
+    shared_ptr<int> s2(new int (2));
+
+    weak_ptr<int> w1(s1);
+    weak_ptr<int> w2(s2);
+
+    EXPECT_EQ(w1.use_count(), w2.use_count());
+    EXPECT_FALSE(w1.expired());
+    EXPECT_FALSE(w2.expired());
+
+    {
+        auto s3 = w1.lock();
+        auto s4 = w2.lock();
+
+        EXPECT_EQ(*s3, 1);
+        EXPECT_EQ(*s4, 2);
+    }
+
+    w2.swap(w1);
+
+    {
+        auto s3 = w1.lock();
+        auto s4 = w2.lock();
+
+        EXPECT_EQ(*s3, 2);
+        EXPECT_EQ(*s4, 1);
+    }
+
+    w1.swap(w2);
+
+    {
+        auto s3 = w1.lock();
+        auto s4 = w2.lock();
+
+        EXPECT_EQ(*s3, 1);
+        EXPECT_EQ(*s4, 2);
+    }
 }
 
 //*/
