@@ -11,7 +11,10 @@ struct default_delete
     {}
 
     void operator()(T* ptr) const noexcept
-    { delete ptr; }
+    {
+        delete ptr;
+        ptr = nullptr;
+    }
 };
 
 
@@ -26,7 +29,10 @@ struct default_delete<T[]>
     {}
 
     void operator()(T* ptr) const noexcept
-    { delete[] ptr;}
+    {
+        delete[] ptr;
+        ptr = nullptr;
+    }
 
 };
 

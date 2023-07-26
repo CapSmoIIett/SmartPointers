@@ -105,7 +105,6 @@ TEST(UNIQUE_PTR, SWAP)
 
 
 
-
 TEST(UNIQUE_PTR_ARRAY, INT)
 {
     /*int size = 10;
@@ -370,7 +369,6 @@ TEST(WEAK_PTR, SWAP)
 
 
 
-
 TEST (WIDGET, CONSTRUCTOR)
 {
     auto root = Widget::CreateWidget();
@@ -387,7 +385,6 @@ TEST (WIDGET, CONSTRUCTOR)
     auto node122 = Widget::CreateWidget(node12);
     auto node123 = Widget::CreateWidget(node12);
     
-
     EXPECT_EQ(root, node1->GetParent().lock());
     EXPECT_EQ(root, node2->GetParent().lock());
     EXPECT_EQ(root, node3->GetParent().lock());
@@ -411,7 +408,116 @@ TEST (WIDGET, CONSTRUCTOR)
     EXPECT_EQ(node121, (*node12)[0]);
     EXPECT_EQ(node122, (*node12)[1]);
     EXPECT_EQ(node123, (*node12)[2]);
-
 }
+
+TEST(WIDGET, TYPE)
+{
+    const auto root = Widget::CreateWidget();
+    EXPECT_EQ(root->GetClassName(), "Widget");
+    EXPECT_EQ(root->GetClassType(), typeid(root.get()));
+}
+
+
+
+
+TEST (CALENDARWIDGET, CONSTRUCTOR)
+{
+    auto root = CalendarWidget::CreateCalendarWidget();
+
+    auto node1 = CalendarWidget::CreateCalendarWidget(root);
+    auto node2 = CalendarWidget::CreateCalendarWidget(root);
+    auto node3 = CalendarWidget::CreateCalendarWidget(root);
+
+    auto node11 = CalendarWidget::CreateCalendarWidget(node1);
+    auto node12 = CalendarWidget::CreateCalendarWidget(node1);
+    auto node13 = CalendarWidget::CreateCalendarWidget(node1);
+
+    auto node121 = CalendarWidget::CreateCalendarWidget(node12);
+    auto node122 = CalendarWidget::CreateCalendarWidget(node12);
+    auto node123 = CalendarWidget::CreateCalendarWidget(node12);
+    
+    EXPECT_EQ(dynamic_pointer_cast<Widget>(root), (node1->GetParent().lock()));
+    EXPECT_EQ(root, node2->GetParent().lock());
+    EXPECT_EQ(root, node3->GetParent().lock());
+
+    EXPECT_EQ(node1, (*root)[0]);
+    EXPECT_EQ(node2, (*root)[1]);
+    EXPECT_EQ(node3, (*root)[2]);
+
+    EXPECT_EQ(node1, node11->GetParent().lock());
+    EXPECT_EQ(node1, node12->GetParent().lock());
+    EXPECT_EQ(node1, node13->GetParent().lock());
+
+    EXPECT_EQ(node11, (*node1)[0]);
+    EXPECT_EQ(node12, (*node1)[1]);
+    EXPECT_EQ(node13, (*node1)[2]);
+
+    EXPECT_EQ(node12, node121->GetParent().lock());
+    EXPECT_EQ(node12, node122->GetParent().lock());
+    EXPECT_EQ(node12, node123->GetParent().lock());
+
+    EXPECT_EQ(node121, (*node12)[0]);
+    EXPECT_EQ(node122, (*node12)[1]);
+    EXPECT_EQ(node123, (*node12)[2]);
+}
+
+TEST(CALENDARWIDGET, TYPE)
+{
+    const auto root = CalendarWidget::CreateCalendarWidget();
+    EXPECT_EQ(root->GetClassName(), "CalendarWidget");
+    EXPECT_EQ(root->GetClassType(), typeid(root.get()));
+}
+
+
+
+
+TEST (TABWIDGET, CONSTRUCTOR)
+{
+    auto root = TabWidget::CreateTabWidget();
+
+    auto node1 = TabWidget::CreateTabWidget(root);
+    auto node2 = TabWidget::CreateTabWidget(root);
+    auto node3 = TabWidget::CreateTabWidget(root);
+
+    auto node11 = TabWidget::CreateTabWidget(node1);
+    auto node12 = TabWidget::CreateTabWidget(node1);
+    auto node13 = TabWidget::CreateTabWidget(node1);
+
+    auto node121 = TabWidget::CreateTabWidget(node12);
+    auto node122 = TabWidget::CreateTabWidget(node12);
+    auto node123 = TabWidget::CreateTabWidget(node12);
+    
+    EXPECT_EQ(root, node1->GetParent().lock());
+    EXPECT_EQ(root, node2->GetParent().lock());
+    EXPECT_EQ(root, node3->GetParent().lock());
+
+    EXPECT_EQ(node1, (*root)[0]);
+    EXPECT_EQ(node2, (*root)[1]);
+    EXPECT_EQ(node3, (*root)[2]);
+
+    EXPECT_EQ(node1, node11->GetParent().lock());
+    EXPECT_EQ(node1, node12->GetParent().lock());
+    EXPECT_EQ(node1, node13->GetParent().lock());
+
+    EXPECT_EQ(node11, (*node1)[0]);
+    EXPECT_EQ(node12, (*node1)[1]);
+    EXPECT_EQ(node13, (*node1)[2]);
+
+    EXPECT_EQ(node12, node121->GetParent().lock());
+    EXPECT_EQ(node12, node122->GetParent().lock());
+    EXPECT_EQ(node12, node123->GetParent().lock());
+
+    EXPECT_EQ(node121, (*node12)[0]);
+    EXPECT_EQ(node122, (*node12)[1]);
+    EXPECT_EQ(node123, (*node12)[2]);
+}
+
+TEST(TABWIDGET, TYPE)
+{
+    const auto root = TabWidget::CreateTabWidget();
+    EXPECT_EQ(root->GetClassName(), "TabWidget");
+    EXPECT_EQ(root->GetClassType(), typeid(root.get()));
+}
+
 
 //*/

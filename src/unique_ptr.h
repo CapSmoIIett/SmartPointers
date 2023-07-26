@@ -138,6 +138,6 @@ public:
 
 private:
     T* Pointer = nullptr;
-    D Deleter = Deleter();
+    D Deleter = D();
 };
 

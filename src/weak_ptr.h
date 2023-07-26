@@ -12,14 +12,14 @@ public:
         Pointer(nullptr), Ctrl(nullptr)
     { }
 
-    weak_ptr(weak_ptr const& other) noexcept
+    weak_ptr(weak_ptr const & other) noexcept
     {
-        this->Pointer = other->Pointer;
-        this->Ctrl = other->Ctrl;
+        this->Pointer = other.Pointer;
+        this->Ctrl = other.Ctrl;
         this->Ctrl->WeakCounter++;
     }
 
-    weak_ptr(shared_ptr<T>& spt)
+    weak_ptr(const shared_ptr<T> & spt)
     {
         this->Pointer = spt.Pointer;
         this->Ctrl = spt.Ctrl;
@@ -61,7 +61,7 @@ public:
     }
 
     void reset() noexcept { clean(); }
-    long use_count() const noexcept { return Ctrl->Counter; }
+    size_t use_count() const noexcept { return Ctrl->Counter; }
     bool expired() const noexcept { return Ctrl->Counter <= 0; }
 
     shared_ptr<T> lock() const noexcept
@@ -73,7 +73,7 @@ public:
 
 private:
 	T* Pointer;
-	CtrlBlock<T>* Ctrl;
+	CtrlBlock* Ctrl;
 
 	void clean()
 	{
@@ -82,7 +82,7 @@ private:
 		{
 			if (Pointer != nullptr)
 			{
-				Ctrl->Deleter(Pointer);
+                delete Pointer;
 				Pointer = nullptr;
 			}
 

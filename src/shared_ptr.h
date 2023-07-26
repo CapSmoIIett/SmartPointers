@@ -4,26 +4,25 @@
 #include <functional>
 
 //template <typename T, typename Deleter = std::function<void(T*)>, typename Allocator = std::function<T*(void)>>
-template <typename T>
 struct CtrlBlock
 {
 	std::atomic<size_t> Counter;
 	std::atomic<size_t> WeakCounter;
-	std::function<void(T*)> Deleter;
-	std::function<T*(T)> Allocator;
-
-	CtrlBlock(size_t c, size_t wc, std::function<void(T*)> d , std::function<T*(T)> a) :
-        Counter(c), WeakCounter(wc), Deleter(d), Allocator(a)
-    { }
 
 	CtrlBlock(size_t c = 0, size_t wc = 0) :
 		Counter(c),
-        WeakCounter(wc),
-        Deleter([](T* ptr) { delete ptr; }),
-        Allocator([](T val) { return new T(val); })
+        WeakCounter(wc)
 	{ }
-
 };
+
+
+bool operator==(const CtrlBlock& left, const CtrlBlock& right)
+{
+	return left.Counter == right.Counter &&
+		left.WeakCounter == right.WeakCounter;//&&
+		//left.Deleter == right.Deleter &&
+		//left.Allocator == right.Allocator;
+}
 
 template<typename T>
 class weak_ptr;
@@ -37,12 +36,12 @@ public:
 	// constructors
 	constexpr shared_ptr() noexcept :
 		Pointer(nullptr),
-		Ctrl(new CtrlBlock<T>(1))
+		Ctrl(new CtrlBlock(1))
 	{ }
 
 	constexpr shared_ptr(T* ptr) noexcept :
 		Pointer(ptr),
-		Ctrl(new CtrlBlock<T>(1))
+		Ctrl(new CtrlBlock(1))
 	{ }
 	shared_ptr(const shared_ptr& obj)
 	{
@@ -93,26 +92,31 @@ public:
 	{
 		clean();
 		Pointer = ptr;
-		Ctrl = new CtrlBlock<T>(1);
+		Ctrl = new CtrlBlock(1);
 	}
 
 	T* get() const noexcept { return Pointer; }
 	T& operator*() const noexcept { return *Pointer; }
 	T* operator->() const noexcept { return Pointer; }
 
+
+
 private:
 	T* Pointer;
-	CtrlBlock<T>* Ctrl;
+	CtrlBlock* Ctrl;
 	
 
 	void clean()
 	{
+		if (Ctrl == nullptr && Pointer == nullptr)
+			return;
+
 		Ctrl->Counter--;
 		if (Ctrl->Counter <= 0 && Ctrl->WeakCounter <= 0)
 		{
 			if (Pointer != nullptr)
 			{
-				Ctrl->Deleter(Pointer);
+				delete Pointer;
 				Pointer = nullptr;
 			}
 
@@ -126,5 +130,54 @@ private:
 	}
 
 	friend class weak_ptr<T>;
+
+	template<typename A, typename B>
+	friend bool operator==(const shared_ptr<A>& left, const shared_ptr<B>& right);
+	template<typename T, typename U>
+	friend shared_ptr<T> static_pointer_cast(shared_ptr<U> const& spt) noexcept;
+    template<class T, class U>
+	friend shared_ptr<T> dynamic_pointer_cast(shared_ptr<U> const& spt) noexcept;
 };
 
+
+template<class T, class U>
+shared_ptr<T> static_pointer_cast(shared_ptr<U> const& spt) noexcept
+{
+	auto p = static_cast<typename T*>(spt.get());
+    shared_ptr<T> ptr;
+    ptr.Pointer = p;
+    ptr.Ctrl = spt.Ctrl;
+    ptr.Ctrl->Counter++;
+
+    return ptr;
+}
+
+template<class T, class U>
+shared_ptr<T> dynamic_pointer_cast(shared_ptr<U> const& spt) noexcept
+{
+	if (auto p = dynamic_cast<typename T*>(spt.get()))
+	{
+		shared_ptr<T> ptr;
+        ptr.Pointer = p;
+        ptr.Ctrl = spt.Ctrl;
+        ptr.Ctrl->Counter++;
+
+		return ptr;
+	}
+	else
+		return shared_ptr<T>();
+}
+
+template<class T, class U>
+shared_ptr<T> const_pointer_cast(shared_ptr<U> const& spt) noexcept
+{
+	auto p = const_cast<typename T*>(spt.get());
+	return std::shared_ptr<T>(p);
+}
+
+template<typename A, typename B>
+bool operator==(const shared_ptr<A>& left, const shared_ptr<B>& right)
+{
+	return left.Pointer == right.Pointer &&
+        *(left.Ctrl) == *(right.Ctrl);
+}
