@@ -4,5 +4,5 @@
 cmake_minimum_required (VERSION 3.8)
 
 # Add source to this project's executable.
-add_executable (SmartPtr "main.cpp" "header.h" "unique_ptr.h" "weak_ptr.h" "Widget.h" "defaultmemoryfunctions.h")
+add_executable (SmartPtr "main.cpp" "header.h" "unique_ptr.h" "weak_ptr.h" "widget.h" "defaultmemoryfunctions.h")
 
