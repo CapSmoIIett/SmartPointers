@@ -1,38 +1,39 @@
-
+#pragma once
 
 #include<type_traits>
 
 #include "defaultmemoryfunctions.h"
 
 
-
-template <typename T, typename Deleter = default_delete<T>>
+template <typename T, typename D = default_delete<T>>
 class unique_ptr
 {
 public:
-
     // Constructors
     constexpr unique_ptr() = default;
     explicit unique_ptr(T* ptr) noexcept
         : Pointer(ptr)
     {}
-    unique_ptr(T* ptr, const Deleter& deleter)
-        : Pointer(ptr), _Deleter(deleter)
+    unique_ptr(T* ptr, const D& deleter)
+        : Pointer(ptr), Deleter(deleter)
     {}
     unique_ptr(unique_ptr&& other) noexcept
-        : Pointer(other.release()), _Deleter(other._Deleter)
+        : Pointer(other.release()), Deleter(other.Deleter)
     {}
     template <typename U, typename D>
     unique_ptr(unique_ptr<U, D>&& other) noexcept
-        : Pointer(other.release()), _Deleter(std::forward<D>(other.get_deleter()))
+        : Pointer(other.release()), Deleter(std::forward<D>(other.get_deleter()))
     {}
     
     unique_ptr(const unique_ptr& other) = delete;
 
-
     // Destructors
-    ~unique_ptr() { _Deleter(Pointer); }
-
+    ~unique_ptr()
+    {
+        if (Pointer == nullptr)
+            return;
+        Deleter(Pointer);
+    }
 
     unique_ptr& operator=(const unique_ptr& other) = delete;
     unique_ptr& operator=(unique_ptr&& other) noexcept
@@ -40,13 +41,11 @@ public:
         unique_ptr(std::move(other)).swap(*this);
         return *this;
     }
-    template <class U, class D> unique_ptr& operator=(unique_ptr<U, D>&& u) noexcept;
-
 
     T* operator->() const noexcept { return Pointer; }
     T& operator*() const noexcept { return *Pointer; }
     T* get() const noexcept { return Pointer; }
-    Deleter& get_deleter() const noexcept { return _Deleter; }
+    D& get_deleter() const noexcept { return Deleter; }
     explicit operator bool() { return Pointer != nullptr; }
 
     T* release() noexcept
@@ -58,7 +57,7 @@ public:
 
     void reset(T* ptr) noexcept
     {
-        _Deleter(Pointer);
+        Deleter(Pointer);
         Pointer = ptr;
     }
 
@@ -67,40 +66,43 @@ public:
         std::swap(Pointer, other.Pointer);
     }
 
-
 private:
     T* Pointer = nullptr;
-    Deleter _Deleter = Deleter();
+    D Deleter = D();
+
 };
 
 
-template <typename T, typename Deleter>
-class unique_ptr<T[], Deleter>
+template <typename T, typename D>
+class unique_ptr<T[], D>
 {
 public:
-
     // Constructors
     constexpr unique_ptr() = default;
     explicit unique_ptr(T* ptr) noexcept
         : Pointer(ptr)
     {}
-    unique_ptr(T* ptr, const Deleter& deleter)
-        : Pointer(ptr), _Deleter(deleter)
+    unique_ptr(T* ptr, const D& deleter)
+        : Pointer(ptr), Deleter(deleter)
     {}
     unique_ptr(unique_ptr&& other) noexcept
-        : Pointer(other.release()), _Deleter(other._Deleter)
+        : Pointer(other.release()), Deleter(other.Deleter)
     {}
     template <typename U, typename D>
     unique_ptr(unique_ptr<U, D>&& other) noexcept
-        : Pointer(other.release()), _Deleter(std::forward<D>(other.get_deleter()))
+        : Pointer(other.release()), Deleter(std::forward<D>(other.get_deleter()))
     {}
     
     unique_ptr(const unique_ptr& other) = delete;
 
-
     // Destructors
-    ~unique_ptr() { _Deleter(Pointer); }
-
+    ~unique_ptr()
+    {
+        if (Pointer == nullptr)
+            return;
+        Deleter(Pointer);
+        Pointer = nullptr;
+    }
 
     unique_ptr& operator=(const unique_ptr& other) = delete;
     unique_ptr& operator=(unique_ptr&& other) noexcept
@@ -110,10 +112,9 @@ public:
     }
     template <class U, class D> unique_ptr& operator=(unique_ptr<U, D>&& u) noexcept;
 
-
-    T& operator[](int i) const noexcept { return *Pointer + i * sizeof(T); }
+    T& operator[](int i) const noexcept { return *static_cast<T*>(Pointer + i * sizeof(T)); }
     T* get() const noexcept { return Pointer; }
-    Deleter& get_deleter() const noexcept { return _Deleter; }
+    D& get_deleter() const noexcept { return Deleter; }
     explicit operator bool() { return Pointer != nullptr; }
 
     T* release() noexcept
@@ -125,7 +126,7 @@ public:
 
     void reset(T* ptr) noexcept
     {
-        _Deleter(Pointer);
+        Deleter(Pointer);
         Pointer = ptr;
     }
 
@@ -135,9 +136,8 @@ public:
         swap(Pointer, other.Pointer);
     }
 
-
 private:
     T* Pointer = nullptr;
-    Deleter _Deleter = Deleter();
+    D Deleter = Deleter();
 };
 
